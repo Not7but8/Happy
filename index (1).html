@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catch the Falling Objects Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+        }
+        canvas {
+            background: linear-gradient(to bottom, #87cefa, #ffffff);
+            display: block;
+            margin: 0 auto;
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+<div id="score">Score: 0</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreDisplay = document.getElementById('score');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let basket = {
+        x: canvas.width / 2 - 50,
+        y: canvas.height - 100,
+        width: 100,
+        height: 50,
+        color: 'brown',
+        speed: 10
+    };
+
+    let fallingObjects = [];
+    let score = 0;
+    let gameOver = false;
+
+    // Create falling object
+    function createFallingObject() {
+        let object = {
+            x: Math.random() * (canvas.width - 30),
+            y: 0,
+            width: 30,
+            height: 30,
+            color: randomColor(),
+            speed: Math.random() * 3 + 2
+        };
+        fallingObjects.push(object);
+    }
+
+    // Random color for falling objects
+    function randomColor() {
+        const colors = ['red', 'yellow', 'green', 'blue', 'purple', 'orange'];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    // Draw basket
+    function drawBasket() {
+        ctx.fillStyle = basket.color;
+        ctx.fillRect(basket.x, basket.y, basket.width, basket.height);
+    }
+
+    // Draw falling objects
+    function drawFallingObjects() {
+        fallingObjects.forEach((object) => {
+            ctx.fillStyle = object.color;
+            ctx.fillRect(object.x, object.y, object.width, object.height);
+        });
+    }
+
+    // Update falling objects' positions
+    function updateFallingObjects() {
+        fallingObjects.forEach((object, index) => {
+            object.y += object.speed;
+
+            // Check if object is caught
+            if (object.y + object.height > basket.y && object.x + object.width > basket.x && object.x < basket.x + basket.width) {
+                score++;
+                scoreDisplay.textContent = `Score: ${score}`;
+                fallingObjects.splice(index, 1); // Remove caught object
+            }
+
+            // If object falls out of the screen
+            if (object.y > canvas.height) {
+                fallingObjects.splice(index, 1);
+                gameOver = true;
+                alert("Game Over! Final Score: " + score);
+                window.location.reload(); // Reload the game after game over
+            }
+        });
+    }
+
+    // Move basket with arrow keys
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'ArrowLeft' && basket.x > 0) {
+            basket.x -= basket.speed;
+        }
+        if (event.key === 'ArrowRight' && basket.x + basket.width < canvas.width) {
+            basket.x += basket.speed;
+        }
+    });
+
+    // Game loop
+    function gameLoop() {
+        if (!gameOver) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawBasket();
+            drawFallingObjects();
+            updateFallingObjects();
+
+            requestAnimationFrame(gameLoop);
+        }
+    }
+
+    // Generate new falling objects every 1.5 seconds
+    setInterval(createFallingObject, 1500);
+
+    // Start the game loop
+    gameLoop();
+</script>
+
+</body>
+</html>
